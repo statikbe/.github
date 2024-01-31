@@ -1,0 +1,35 @@
+name: Plugins
+
+on:
+  workflow_call:
+    secrets:
+      token:
+        required: false
+    inputs:
+      craft_version:
+        default: '4'
+        type: string
+      php_version:
+        default: '8.0'
+        type: string
+      node_version:
+        default: '16'
+        type: string
+      jobs:
+        default: '["ecs"]'
+        type: string
+      slack_subteam:
+        default: ''
+        type: string
+concurrency:
+  group: ci-global-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  code-quality:
+    name: Code Quality
+    if: ${{ contains(fromJSON(inputs.jobs), 'ecs') || contains(fromJSON(inputs.jobs), 'phpstan')}}
+    uses: ./.github/workflows/code-quality.yml
+    with:
+      php_version: ${{ fromJSON('{"3":"7.2","4":"8.1","5":"8.2"}')[inputs.craft_version] || inputs.php_version }}
+      jobs: ${{ inputs.jobs }}
+      node_version: ${{ inputs.node_version }}
